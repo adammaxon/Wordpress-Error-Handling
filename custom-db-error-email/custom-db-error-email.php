@@ -2,8 +2,8 @@
 /*
 Plugin Name: Custom Database Error Email
 Description: Captures database errors and sends an email notification to the administrator.
-Version: 1.0
-Author: Adam Maxon
+Version: 1.1
+Author: Your Name
 */
 
 if (!defined('ABSPATH')) {
@@ -18,7 +18,7 @@ class CustomDBErrorEmail {
         $this->recipient_email = get_option('admin_email'); // Defaults to admin email
 
         // Hook into WordPress database queries
-        add_filter('query', [$this, 'monitor_db_errors']);
+       // add_filter('query', [$this, 'monitor_db_errors']);
         
         // Optional: Add a daily log email feature
         add_action('daily_debug_email', [$this, 'send_debug_log_email']);
@@ -33,9 +33,9 @@ class CustomDBErrorEmail {
     public function monitor_db_errors($query) {
         global $wpdb;
 
-        // Execute query to detect errors
-        $wpdb->query($query);
-        if ($wpdb->last_error) {
+        // Execute query and check for errors
+        $result = @$wpdb->query($query); // Suppress warnings to avoid fatal errors
+        if (!is_null($wpdb->last_error) && !empty($wpdb->last_error)) {
             $this->send_error_email($wpdb->last_error);
         }
 
@@ -46,6 +46,10 @@ class CustomDBErrorEmail {
      * Send error details via email
      */
     private function send_error_email($error_message) {
+        if (empty($error_message)) {
+            return; // Avoid sending empty emails
+        }
+
         $subject = 'WordPress Database Error Detected';
         $message = "A database error occurred on your WordPress site:\n\n" . $error_message;
         $headers = ['Content-Type: text/plain; charset=UTF-8'];
@@ -58,7 +62,7 @@ class CustomDBErrorEmail {
      */
     public function send_debug_log_email() {
         $log_file = ABSPATH . 'wp-content/debug.log';
-        if (file_exists($log_file)) {
+        if (file_exists($log_file) && filesize($log_file) > 0) {
             $subject = 'WordPress Debug Log';
             $message = 'Here is the debug log from your WordPress site.';
             $headers = ['Content-Type: text/plain; charset=UTF-8'];
@@ -71,5 +75,10 @@ class CustomDBErrorEmail {
     }
 }
 
-// Initialize the plugin
-new CustomDBErrorEmail();
+// Safely initialize the plugin
+function initialize_custom_db_error_email() {
+    if (class_exists('wpdb')) {
+        new CustomDBErrorEmail();
+    }
+}
+add_action('plugins_loaded', 'initialize_custom_db_error_email');

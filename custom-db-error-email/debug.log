@@ -1,0 +1,2 @@
+[25-Nov-2024 16:22:01 UTC] PHP Parse error:  Unclosed '{' on line 48 in /nas/content/live/mxgdesignlabsc/wp-content/plugins/custom-db-error-email/custom-db-error-email.php on line 56
+[25-Nov-2024 16:23:54 UTC] auditor:event=activated_plugin {"plugin":"custom-db-error-email/custom-db-error-email.php","network_activation":false,"blog_id":1,"event":"activated_plugin","current_user_id":1,"remote_addr":"23.114.197.75"}
